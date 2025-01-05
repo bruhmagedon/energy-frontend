@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { api } from '../api/axios-instance';
+import { useAuthStore } from '../store/useAuthStore';
 
 interface LoginCredentials {
    email: string;
@@ -12,19 +13,19 @@ interface AuthResponse {
 }
 
 const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-   const response = await api.post<AuthResponse>('auth/login', {
-      ...credentials,
-   });
-
+   const response = await api.post<AuthResponse>('auth/login', credentials);
    return response.data;
 };
 
 export const useLogin = () => {
+   const setAuth = useAuthStore((state) => state.setAuth);
+
    return useMutation<AuthResponse, AxiosError, LoginCredentials>({
       mutationFn: login,
       onSuccess: (data) => {
          try {
-            console.log(data);
+            localStorage.setItem('accessToken', JSON.stringify(data.accessToken));
+            setAuth(data.accessToken);
          } catch (error) {}
       },
       onError: (error) => {

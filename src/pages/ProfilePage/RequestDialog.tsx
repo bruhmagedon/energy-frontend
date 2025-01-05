@@ -12,7 +12,7 @@ import {
 import { cn } from '@/utils/lib/utils';
 import { Pencil } from 'lucide-react';
 import { useState } from 'react';
-import { ContactForm } from './RequestForm';
+import { ContactForm } from './ContactForm';
 
 export const RequestDialog = () => {
    const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +24,7 @@ export const RequestDialog = () => {
    return (
       <div className={cn('')}>
          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger className='rounded-lg border border-border bg-blue-500 p-2 font-medium text-white hover:opacity-80'>
+            <DialogTrigger className='rounded-md border border-border bg-[#2563eb] p-2.5 text-sm font-medium text-white hover:opacity-80'>
                Оставить заявку
             </DialogTrigger>
             <DialogContent className='min-w-[800px] bg-white p-0'>

@@ -7,6 +7,7 @@ import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Textarea } from '@/shared/ui/textarea';
 import { Button } from '@/shared/ui/button';
+import { useCreateRequest } from '@/shared/hooks/useCreateRequest';
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
 
@@ -28,9 +29,18 @@ export const ContactForm = ({ handleClose }: { handleClose: () => void }) => {
       },
    });
 
+   const { mutate: createRequest, isPending: isLoading } = useCreateRequest();
+
    const onSubmit = (values: ContactFormValues) => {
-      console.log('Форма отправлена с данными:', values);
-      handleClose();
+      createRequest(values, {
+         onSuccess: () => {
+            console.log('Заявка отправлена:', values);
+            handleClose();
+         },
+         onError: (error) => {
+            console.error('Ошибка при создании заявки:', error);
+         },
+      });
    };
 
    return (
@@ -42,7 +52,7 @@ export const ContactForm = ({ handleClose }: { handleClose: () => void }) => {
                   name='clientName'
                   control={form.control}
                   render={({ field }) => (
-                     <FormItem>
+                     <FormItem className='hidden'>
                         <FormLabel>Имя клиента</FormLabel>
                         <FormControl>
                            <Input placeholder='Введите ваше имя' {...field} />
@@ -73,6 +83,15 @@ export const ContactForm = ({ handleClose }: { handleClose: () => void }) => {
                                  <SelectItem value='repair' className='hover:bg-blue-200'>
                                     Ремонт
                                  </SelectItem>
+                                 <SelectItem value='maintenance' className='hover:bg-blue-200'>
+                                    Обслуживание
+                                 </SelectItem>
+                                 <SelectItem value='installation' className='hover:bg-blue-200'>
+                                    Установка
+                                 </SelectItem>
+                                 <SelectItem value='upgrade' className='hover:bg-blue-200'>
+                                    Обновление
+                                 </SelectItem>
                                  <SelectItem value='other' className='hover:bg-blue-200'>
                                     Другое
                                  </SelectItem>
@@ -100,13 +119,13 @@ export const ContactForm = ({ handleClose }: { handleClose: () => void }) => {
                                     </SelectTrigger>
                                  </FormControl>
                                  <SelectContent>
-                                    <SelectItem value='not-critical' className='hover:bg-blue-200'>
+                                    <SelectItem value='Не критично' className='hover:bg-blue-200'>
                                        Не критично
                                     </SelectItem>
-                                    <SelectItem value='asap' className='hover:bg-blue-200'>
+                                    <SelectItem value='Как можно скорее' className='hover:bg-blue-200'>
                                        Как можно скорее
                                     </SelectItem>
-                                    <SelectItem value='emergency' className='hover:bg-blue-200'>
+                                    <SelectItem value='Экстренно' className='hover:bg-blue-200'>
                                        Экстренно
                                     </SelectItem>
                                  </SelectContent>
@@ -237,7 +256,7 @@ export const ContactForm = ({ handleClose }: { handleClose: () => void }) => {
 
             {/* Кнопка отправки */}
             <Button type='submit' className='absolute bottom-6 right-[120px]'>
-               Отправить
+               {isLoading ? 'Отправка...' : 'Отправить'}
             </Button>
          </form>
       </Form>

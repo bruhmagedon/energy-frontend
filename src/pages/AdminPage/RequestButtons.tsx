@@ -1,59 +1,193 @@
+import { queryClient } from '@/shared/api/query-client';
+import { useGetAllSpectialist } from '@/shared/hooks/useGetAllSpectialist';
+import { useUpdateSpecialist } from '@/shared/hooks/useUpdateSpecialist';
+import { IRequest, Specialist } from '@/shared/types/types';
 import { Button } from '@/shared/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shared/ui/form';
+import { Input } from '@/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { zodResolver } from '@hookform/resolvers/zod';
+import axios, { Axios } from 'axios';
 import { Check } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
-export const RequestsButtons = () => {
+interface RequestsButtonsProps {
+   request: IRequest;
+}
+
+const FormSchema = z.object({
+   status: z.string(),
+   plannedDayOfWeek: z.string(),
+   specialistId: z.string().min(1, { message: 'Назначьте специалиста' }),
+});
+
+export const RequestsButtons = ({ request }: RequestsButtonsProps) => {
+   const form = useForm<z.infer<typeof FormSchema>>({
+      resolver: zodResolver(FormSchema),
+      defaultValues: {
+         status: request.status || '',
+         plannedDayOfWeek: request.plannedDayOfWeek || '',
+         specialistId: request.specialist ? `${request.specialist.username} ${request.specialist.id}` : '',
+      },
+   });
+
+   const { data: specialists, isPending } = useGetAllSpectialist();
+   const updateSpecialistMutation = useUpdateSpecialist();
+
+   const [selectedDay, setSelectedDay] = useState<string>(request.plannedDayOfWeek || '');
+
+   type DayOfWeek = keyof Specialist['schedule'];
+
+   const filteredSpecialists = useMemo(() => {
+      if (!specialists || !selectedDay) return specialists;
+
+      const day = selectedDay as DayOfWeek;
+
+      return specialists.filter((specialist) => {
+         return specialist.schedule[day];
+      });
+   }, [selectedDay, specialists]);
+
+   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
+      const { specialistId, status, plannedDayOfWeek } = values;
+
+      const extractedSpecialistId = parseInt(specialistId.split(' ').pop() || '0', 10);
+
+      try {
+         await updateSpecialistMutation.mutateAsync({
+            status,
+            plannedDayOfWeek,
+            specialistId: extractedSpecialistId,
+            requestId: request.id,
+         });
+      } catch (error) {
+         if (axios.isAxiosError(error)) {
+            if (error.response?.status === 400) {
+               form.setError('specialistId', {
+                  type: 'manual',
+                  message: 'Специалист не может работать в этот день',
+               });
+            }
+         } else {
+            console.error('Unexpected error:', error);
+         }
+      }
+   };
+
    return (
-      <div className='flex items-end gap-2'>
-         <div className='flex flex-col gap-1'>
-            <label className='font-medium'>Статус заявки</label>
-            <Select>
-               <SelectTrigger className='w-[180px] bg-blue-500 font-medium text-white'>
-                  <SelectValue placeholder='Выбрать статус' />
-               </SelectTrigger>
-               <SelectContent>
-                  <SelectItem value='pending'>На рассмотрении</SelectItem>
-                  <SelectItem value='accepted'>Принята</SelectItem>
-                  <SelectItem value='rejected'>Отклонена</SelectItem>
-                  <SelectItem value='inProgress'>В процессе</SelectItem>
-                  <SelectItem value='completed'>Выполнена</SelectItem>
-               </SelectContent>
-            </Select>
-         </div>
-         <div className='flex flex-col gap-1'>
-            <label className='font-medium'>Специалист для заявки</label>
-            <Select>
-               <SelectTrigger className='w-[350px] bg-blue-500 font-medium text-white'>
-                  <SelectValue placeholder='Выбрать специалиста' />
-               </SelectTrigger>
-               <SelectContent>
-                  <SelectItem value='1'>А.В. Смирнов (ремонт)</SelectItem>
-                  <SelectItem value='2'>И.Н. Петров (ремонт)</SelectItem>
-                  <SelectItem value='3'>К.Д. Иванов (обслуживание)</SelectItem>
-                  <SelectItem value='4'>М.С. Кузнецов (по и системы управления)</SelectItem>
-                  <SelectItem value='5'>Т.В. Соколов (композитные материалы)</SelectItem>
-                  <SelectItem value='5'>И.Б. Молосов (универсальный)</SelectItem>
-               </SelectContent>
-            </Select>
-         </div>
-         <div className='flex flex-col gap-1'>
-            <label className='font-medium'>День недели выполнения</label>
-            <Select>
-               <SelectTrigger className='w-[200px] bg-blue-500 font-medium text-white'>
-                  <SelectValue placeholder='Выбрать день недели' />
-               </SelectTrigger>
-               <SelectContent>
-                  <SelectItem value='1'>Понедельник</SelectItem>
-                  <SelectItem value='2'>Вторник</SelectItem>
-                  <SelectItem value='3'>Среда</SelectItem>
-                  <SelectItem value='4'>Четверг</SelectItem>
-                  <SelectItem value='5'>Пятница</SelectItem>
-               </SelectContent>
-            </Select>
-         </div>
-         <Button variant='ghost' className='border-2 border-[#14AE5C] bg-[#dcf3e6]'>
-            Сохранить параметры
-         </Button>
-      </div>
+      <>
+         {isPending ? (
+            <div>Загрузка</div>
+         ) : (
+            <Form {...form}>
+               <form onSubmit={form.handleSubmit(onSubmit)} className='relative flex items-start gap-2'>
+                  <FormField
+                     name='status'
+                     control={form.control}
+                     render={({ field }) => (
+                        <FormItem>
+                           <FormLabel>Статус заявки</FormLabel>
+                           <FormControl>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                 <FormControl>
+                                    <SelectTrigger className='w-[180px] bg-blue-500 font-medium text-white'>
+                                       <SelectValue placeholder='Выберите статус' />
+                                    </SelectTrigger>
+                                 </FormControl>
+                                 <SelectContent>
+                                    <SelectItem value='На рассмотрении' className='hover:bg-blue-200'>
+                                       На рассмотрении
+                                    </SelectItem>
+                                    <SelectItem value='Принята' className='hover:bg-blue-200'>
+                                       Принята
+                                    </SelectItem>
+                                    <SelectItem value='Отклонена' className='hover:bg-blue-200'>
+                                       Отклонена
+                                    </SelectItem>
+                                    <SelectItem value='В процессе' className='hover:bg-blue-200'>
+                                       В процессе
+                                    </SelectItem>
+                                    <SelectItem value='Выполнена' className='hover:bg-blue-200'>
+                                       Выполнено
+                                    </SelectItem>
+                                 </SelectContent>
+                              </Select>
+                           </FormControl>
+                           <FormMessage />
+                        </FormItem>
+                     )}
+                  />
+                  <FormField
+                     name='plannedDayOfWeek'
+                     control={form.control}
+                     render={({ field }) => (
+                        <FormItem>
+                           <FormLabel>День недели выполнения</FormLabel>
+                           <FormControl>
+                              <Select
+                                 onValueChange={(value) => {
+                                    field.onChange(value);
+                                    setSelectedDay(value);
+                                 }}
+                                 defaultValue={field.value}
+                              >
+                                 <SelectTrigger className='w-[200px] bg-blue-500 font-medium text-white'>
+                                    <SelectValue placeholder='Выберите день' />
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                    <SelectItem value='monday'>Понедельник</SelectItem>
+                                    <SelectItem value='tuesday'>Вторник</SelectItem>
+                                    <SelectItem value='wednesday'>Среда</SelectItem>
+                                    <SelectItem value='thursday'>Четверг</SelectItem>
+                                    <SelectItem value='friday'>Пятница</SelectItem>
+                                 </SelectContent>
+                              </Select>
+                           </FormControl>
+                           <FormMessage />
+                        </FormItem>
+                     )}
+                  />
+                  <FormField
+                     name='specialistId'
+                     control={form.control}
+                     render={({ field }) => (
+                        <FormItem>
+                           <FormLabel>Специалист для заявки</FormLabel>
+                           <FormControl>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                 <SelectTrigger className='w-[350px] bg-blue-500 font-medium text-white'>
+                                    <SelectValue placeholder='Выберите специалиста' />
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                    {filteredSpecialists && filteredSpecialists.length > 0 ? (
+                                       filteredSpecialists.map((specialist) => (
+                                          <SelectItem key={specialist.id} value={`${specialist.username} ${specialist.id}`}>
+                                             {specialist.username}
+                                          </SelectItem>
+                                       ))
+                                    ) : (
+                                       <div className='p-2 text-center text-gray-400'>
+                                          Нет специалистов, работающих в этот день
+                                       </div>
+                                    )}
+                                 </SelectContent>
+                              </Select>
+                           </FormControl>
+                           <FormMessage />
+                        </FormItem>
+                     )}
+                  />
+
+                  <div className='absolute bottom-1 right-3'>
+                     <Button variant='ghost' className='border-2 border-[#14AE5C] bg-[#dcf3e6]'>
+                        Сохранить параметры
+                     </Button>
+                  </div>
+               </form>
+            </Form>
+         )}
+      </>
    );
 };

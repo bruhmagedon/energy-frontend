@@ -1,4 +1,5 @@
 'use client';
+import * as jwtDecode from 'jwt-decode';
 import { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -11,10 +12,11 @@ import { Input } from '@/shared/ui/input';
 import { Title } from '@/shared/ui/title';
 import { useLogin } from '@/shared/hooks/useLogin';
 import { useNavigate } from 'react-router-dom';
+import { DecodedToken } from '@/shared/types/types';
 
 export const loginSchema = z.object({
    email: z.string().email({ message: 'Некорректный email' }),
-   password: z.string().min(6, { message: 'Пароль должен быть не менее 8 символов' }),
+   password: z.string().min(1, { message: 'Пароль должен быть не менее 3 символов' }),
 });
 
 export const LoginForm = ({ setActiveForm }: { setActiveForm: (value: 'login' | 'register') => void }) => {
@@ -32,28 +34,22 @@ export const LoginForm = ({ setActiveForm }: { setActiveForm: (value: 'login' | 
    });
 
    const onLoginSubmit = (values: z.infer<typeof loginSchema>) => {
-      console.log(values);
-
       login(
          { email: values.email, password: values.password },
          {
             onSuccess: (data) => {
                setError('');
-               navigate('/profile');
-               // const { role } = useUserStore.getState().userInfo;
-               // switch (role) {
-               //    case 'shop':
-               //       router.push('/shop');
-               //       break;
-               //    case 'admin':
-               //       router.push('/admin');
-               //       break;
-               //    case 'factory':
-               //       router.push('/factory');
-               //       break;
-               //    default:
-               //       router.push('/');
-               // }
+               try {
+                  const decoded: DecodedToken = jwtDecode.jwtDecode(data.accessToken);
+
+                  if (decoded.role === 'admin') {
+                     navigate('/admin');
+                  } else {
+                     navigate('/profile');
+                  }
+               } catch (error) {
+                  console.error('Failed to decode JWT:', error);
+               }
             },
             onError: () => {
                setError('Вы ввели неверные данные');

@@ -10,32 +10,21 @@ import { ProfilePage } from '@/pages/ProfilePage/ProfilePage';
 import { AuthPage } from '@/pages/AuthPage/AuthPage';
 import { AdmingPage } from '@/pages/AdminPage/AdminPage';
 
-export const appRouter = createBrowserRouter(
-   [
-      {
-         element: <BaseLayout />,
-         children: [
-            { element: <MainPage />, path: '/' },
-            { element: <ServicePage />, path: '/service' },
-            { element: <ContactPage />, path: '/contact' },
-            { element: <ProfilePage />, path: '/profile' },
-            { element: <AuthPage />, path: '/auth' },
-            { element: <NotFoundPage />, path: '*' },
-         ],
-         errorElement: <ErrorPage />,
-      },
-      {
-         element: <AdmingPage />,
-         path: '/admin',
-      },
-   ],
+export const appRouter = createBrowserRouter([
    {
-      future: {
-         v7_relativeSplatPath: true,
-         v7_fetcherPersist: true,
-         v7_normalizeFormMethod: true,
-         v7_partialHydration: true,
-         v7_skipActionErrorRevalidation: true,
-      },
+      element: <BaseLayout />,
+      children: [
+         { element: <MainPage />, path: '/' },
+         { element: <ServicePage />, path: '/service' },
+         { element: <ContactPage />, path: '/contact' },
+         { element: <ProfilePage />, path: '/profile' },
+         { element: <AuthPage />, path: '/auth' },
+         { element: <NotFoundPage />, path: '*' },
+      ],
+      errorElement: <ErrorPage />,
    },
-);
+   {
+      element: <AdmingPage />,
+      path: '/admin',
+   },
+]);

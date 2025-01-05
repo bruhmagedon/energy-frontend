@@ -1,33 +1,68 @@
+import { useDeleteSpecialist } from '@/shared/hooks/useDeleteSpectiast';
+import { Specialist } from '@/shared/types/types';
 import { Button } from '@/shared/ui/button';
-import { Palette, Ruler, ShoppingCart } from 'lucide-react';
+import { BookUser, Pickaxe, Ruler, Trash, User } from 'lucide-react';
 
-export const SpecialistCard = () => {
+const technicianTypeMap: Record<
+   'electricalEngineer' | 'mechanicalTechnician' | 'softwareEngineer' | 'bladeCompositeTechnician' | 'universalEngineer',
+   string
+> = {
+   electricalEngineer: 'Электроинженер',
+   mechanicalTechnician: 'Механик',
+   softwareEngineer: 'Программист',
+   bladeCompositeTechnician: 'Техник по лопастям',
+   universalEngineer: 'Универсальный инженер',
+};
+
+const daysOrder: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+type DayOfWeek = keyof Specialist['schedule'];
+const daysMap: Record<DayOfWeek, string> = {
+   monday: 'Пн',
+   tuesday: 'Вт',
+   wednesday: 'Ср',
+   thursday: 'Чт',
+   friday: 'Пт',
+};
+
+export const SpecialistCard = ({ specialist }: { specialist: Specialist }) => {
+   const { mutateAsync: deleteSpecialist } = useDeleteSpecialist();
+
+   const handleDeleteSpecialist = () => {
+      if (specialist.id) {
+         deleteSpecialist(specialist.id);
+      }
+   };
+
    return (
-      <div className='flex items-center justify-between rounded-lg border border-border bg-background p-3 shadow hover:border-border-hover'>
+      <div className='flex items-center justify-between gap-6 rounded-lg border border-border bg-background p-3 shadow hover:border-border-hover'>
          <div className='flex flex-1 items-center gap-1 text-sm'>
-            <Palette size={16} />
-            <p>{'А.В. Смирнов'}</p>
+            <User size={18} />
+            <p>{specialist.username}</p>
          </div>
          <div className='flex items-center gap-4'>
-            <div className='flex items-center gap-1 text-sm'>
-               <Ruler size={16} />
-               <p>{'Механик по обслуживанию и ремонту роторов, редукторов и турбин'}</p>
+            <div className='flex min-w-[185px] items-center gap-2 text-sm'>
+               <BookUser size={18} />
+               <p>{technicianTypeMap[specialist.technicianType] ?? 'Неизвестная профессия'}</p>
             </div>
-            {/* <div className='flex min-w-[70px] items-center gap-1 text-sm'>
-               <Weight size={16} />
-               <p>{productItem.weight} кг</p>
-            </div>
-            <div className='flex gap-2'>
-               <Button
-                  variant='ghost'
-                  className='border-2 border-[#14AE5C] bg-[#dcf3e6]'
-                  size='icon'
-                  onClick={handleAddItemToCard}
-               >
-                  <ShoppingCart />
-               </Button>
-            </div> */}
          </div>
+         <div className='flex gap-2'>
+            {daysOrder.map((dayKey) => {
+               const isAvailable = specialist.schedule[dayKey];
+               return (
+                  <div
+                     key={dayKey}
+                     className={`flex h-8 w-8 items-center justify-center rounded-md border ${
+                        isAvailable ? 'border-blue-500 bg-blue-500 text-white' : 'border-gray-300 bg-white text-black'
+                     }`}
+                  >
+                     {daysMap[dayKey]}
+                  </div>
+               );
+            })}
+         </div>
+         <Button variant='ghost' className='border-2 border-[#F24822] bg-[#FDE3DE]' size='icon' onClick={handleDeleteSpecialist}>
+            <Trash />
+         </Button>
       </div>
    );
 };

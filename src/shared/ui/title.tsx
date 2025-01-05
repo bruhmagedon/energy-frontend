@@ -12,16 +12,14 @@ interface TitleProps {
 }
 
 export const Title = ({ tag = 'p', text, size = 'sm', className }: TitleProps) => {
-   // Парметры в зависимости от пропсов
    const mapTagBySize = {
       h5: 'h5',
       h4: 'h4',
       h3: 'h3',
       h2: 'h2',
       h1: 'h1',
-      // "2xl": "h1",
       p: 'p',
-   } as const; //const = только для чтения
+   } as const;
 
    const mapClassNameBySize = {
       xs: 'text-[12px]',
