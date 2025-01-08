@@ -25,13 +25,17 @@ export const ContactForm = ({ handleClose }: { handleClose: () => void }) => {
          serviceDate: '',
          area: '',
          terrain: '',
-         message: '',
+         message: '',   
+         city: '',
+         phoneNumber: '',
       },
    });
 
    const { mutate: createRequest, isPending: isLoading } = useCreateRequest();
 
    const onSubmit = (values: ContactFormValues) => {
+      console.log(values);
+      
       createRequest(values, {
          onSuccess: () => {
             console.log('Заявка отправлена:', values);
@@ -136,7 +140,6 @@ export const ContactForm = ({ handleClose }: { handleClose: () => void }) => {
                      </FormItem>
                   )}
                />
-
                <FormField
                   name='installationYear'
                   control={form.control}
@@ -163,6 +166,20 @@ export const ContactForm = ({ handleClose }: { handleClose: () => void }) => {
                      </FormItem>
                   )}
                />
+                <FormField
+                  name='phoneNumber'
+                  control={form.control}
+                  render={({ field }) => (
+                     <FormItem>
+                        <FormLabel>Номер телефона</FormLabel>
+                        <FormControl>
+                           <Input type='text' placeholder='Введите номер (например, +7 (912) 345-67-89)' {...field} />
+                        </FormControl>
+                        <FormDescription>Пример номера телефона: +79123554252.</FormDescription>
+                        <FormMessage />
+                     </FormItem>
+                  )}
+               />
 
                {/* Подробное описание проблемы */}
                <FormField
@@ -180,6 +197,19 @@ export const ContactForm = ({ handleClose }: { handleClose: () => void }) => {
                />
             </div>
             <div className='flex w-1/2 flex-col gap-3'>
+               <FormField
+                  name='city'
+                  control={form.control}
+                  render={({ field }) => (
+                     <FormItem>
+                        <FormLabel>Город</FormLabel>
+                        <FormControl>
+                           <Input type='text' placeholder='Введите адрес' {...field} />
+                        </FormControl>
+                        <FormMessage />
+                     </FormItem>
+                  )}
+               />
                {/* Количество ветрогенераторов */}
                <FormField
                   name='windTurbineCount'

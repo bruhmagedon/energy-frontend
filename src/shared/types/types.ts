@@ -13,6 +13,8 @@ export interface IRequest {
    area: string;
    terrain: string;
    message?: string;
+   phoneNumber: string;
+   city: string;
    specialist: Specialist | null;
    user: User;
    plannedDayOfWeek: string | null;

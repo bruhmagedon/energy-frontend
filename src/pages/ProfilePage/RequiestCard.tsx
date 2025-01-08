@@ -97,10 +97,15 @@ export const RequiestCard = ({ isAdmin = false, request }: { isAdmin?: boolean; 
                <StatusBadge label={statusData.label} Icon={statusData.Icon} className={statusData.styles} />
             </div>
          </div>
+         
          <div className='flex gap-2'>
             <div className='flex w-fit flex-col justify-center gap-2 rounded-lg border border-border bg-gray-100 p-4 text-base'>
                <InfoRow label='Email:' value={request.user.email || 'Не указано'} />
                <InfoRow label='Имя:' value={request.user.username || 'Не указано'} />
+            </div>
+            <div className='flex w-fit flex-col justify-center gap-2 rounded-lg border border-border bg-gray-100 p-4 text-base'>
+               <InfoRow label='Телефон:' value={request.city || 'Не указано'} />
+               <InfoRow label='Город:' value={request.phoneNumber || 'Не указано'} />
             </div>
             <div className='flex w-fit flex-col justify-center gap-2 rounded-lg border border-border bg-gray-100 p-4'>
                <InfoRow label='Кол. во ветрогенераторов:' value={request.windTurbineCount || 'Не указано'} />

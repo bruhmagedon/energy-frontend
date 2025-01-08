@@ -14,6 +14,8 @@ export interface RequestData {
    area: string;
    terrain: string;
    message?: string;
+   city: string;
+   phoneNumber: string;
 }
 
 interface CreateRequestResponse {
