@@ -42,7 +42,7 @@ export const AdmingPage = () => {
                   )}
                >
                   {requests!.length <= 0 ? (
-                     <p className='text-2xl'>У вас нет заявок</p>
+                     <div className='text-2xl'>Нет ни одной заявки в системе</div>
                   ) : (
                      <div className='flex w-full flex-col gap-6 p-6'>
                         {requests!.map((request) => (
